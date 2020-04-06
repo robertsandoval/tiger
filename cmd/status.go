@@ -16,23 +16,85 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+
+	"io/ioutil"
+	"log"
 
 	"github.com/spf13/cobra"
 )
 
+type Cluster struct {
+	clusterName  string
+	owner        string
+	api_endpoint string
+}
+
 // statusCmd represents the status command
 var statusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Displays currently created cluster directories and additional info",
+	Long: `Displays currently created cluster directories and additional info
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Currently lists ClusterName, OWNER, and API-Endpoint.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		
+		clusters := []*Cluster{}
+		fmt.Printf("%-24s%-16s%-24s\n", "ClusterName", "OWNER", "API Endpoint")
+		user := os.Getenv("USER")
+		path := "/usr/local/ocp/clusters/" + user
+
+		//get users cluster directories
+		files, err := ioutil.ReadDir(path)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, file := range files {
+			temp := new(Cluster)
+			temp.clusterName = file.Name()
+			temp.owner = user
+			temp.api_endpoint = getAPIEndpoint(path, temp.clusterName)
+			clusters = append(clusters, temp)
+		}
+
+		for i := range clusters {
+			cluster := clusters[i]
+			fmt.Printf("%-24s%-16s%-24s\n", cluster.clusterName, cluster.owner, cluster.api_endpoint)
+		}
+
 	},
+}
+
+func getAPIEndpoint(path string, clustername string) string {
+
+	f, err := os.Open(path + "/" + clustername + "/auth/kubeconfig")
+	if err != nil {
+		return "Kubeconfig file not found"
+	}
+	defer f.Close()
+
+	// Splits on newlines by default.
+	scanner := bufio.NewScanner(f)
+
+	line := 1
+	// https://golang.org/pkg/bufio/#Scanner.Scan
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "server") {
+			//			fmt.Println(strings.TrimLeft(scanner.Text(), "    server:"))
+			return strings.TrimLeft(scanner.Text(), "    server:")
+		}
+
+		line++
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "error"
+	}
+	return "No API Endpoint Found"
 }
 
 func init() {
@@ -46,5 +108,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// statusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	statusCmd.Flags().BoolP("all", "a", false, "print all clusters")
 }

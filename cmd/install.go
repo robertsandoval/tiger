@@ -17,9 +17,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/user"
+	"strconv"
+
 	"github.com/AlecAivazis/survey"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var qs = []*survey.Question{
@@ -32,11 +35,14 @@ var qs = []*survey.Question{
 // installCmd represents the install command
 var installCmd = &cobra.Command{
 	Use:   "install",
-	Short: "A brief description of your command",
-	Long:  `A longer description`,
+	Short: "Creates a standard directory for OCP installs",
+	Long: `Creates a standard directory for OCP installs
+
+Creates a directory for installs in
+/usr/local/ocp/clusters/USER/CLUSTERNAME`,
 	Run: func(cmd *cobra.Command, args []string) {
 		answers := struct {
-			ClusterName   string    // if the types don't match, survey will convert it
+			ClusterName string // if the types don't match, survey will convert it
 		}{}
 
 		// perform the questions
@@ -45,13 +51,29 @@ var installCmd = &cobra.Command{
 			fmt.Println(err.Error())
 			return
 		}
-		clusterPath := ("/usr/local/ocp/clusters/" + os.Getenv("USER") + "/" +  answers.ClusterName)
-		if _, err := os.Stat(clusterPath); ! os.IsNotExist(err) {
-			fmt.Println("Cluster with this name already exists")
-			return
-		}
-		os.MkdirAll(clusterPath, os.ModePerm)
+		//Build cluster directory
+		ocpGid, err := user.LookupGroup("ocp")
+		if err == nil {
+			ocpGidAsStr, _ := strconv.Atoi(ocpGid.Gid)
+			clusterPath := ("/usr/local/ocp/clusters/" + os.Getenv("USER") + "/" + answers.ClusterName)
+			if _, err := os.Stat(clusterPath); !os.IsNotExist(err) {
+				fmt.Println("Cluster with this name already exists")
+				return
+			}
+			err = os.MkdirAll(clusterPath, os.ModePerm)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("Created directory for install: " + clusterPath)
+			}
+			err = os.Chown(clusterPath, os.Getuid(), ocpGidAsStr)
+			if err != nil {
+				fmt.Println(err)
+			}
 
+		} else {
+			fmt.Println(err)
+		}
 	},
 }
 

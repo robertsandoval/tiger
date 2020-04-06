@@ -18,23 +18,26 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"path"
+	"path/filepath"
+
 	"github.com/AlecAivazis/survey"
 	"github.com/spf13/cobra"
 )
 
 var binaryCmd = &cobra.Command{
 	Use:   "binary",
-	Short: "A brief description of your command",
-	Long:  `A longer description`,
+	Short: "Sets up openshift-install and oc command versions",
+	Long: `\nSets up openshift-install and oc command veresions
+Lists a set of version options for the binaries and 
+creates symlinks into $USER/bin `,
 	Run: func(cmd *cobra.Command, args []string) {
 		install_clients := "/usr/local/ocp/install-clients"
 		version_choices := make(map[string]string)
 
 		if install_clients != "" {
 			versions, err := filepath.Glob(filepath.Join(install_clients, "oc*", "*-4*"))
-  			keys := make([]string, 0, len(versions))
+			keys := make([]string, 0, len(versions))
 
 			if err != nil {
 				fmt.Println("error finding binary version directories")
@@ -43,8 +46,8 @@ var binaryCmd = &cobra.Command{
 			for _, binary_path := range versions {
 				version := path.Base(binary_path)
 				version_choices[version] = binary_path
-    				keys = append(keys, version)
-  				
+				keys = append(keys, version)
+
 			}
 
 			var qs = []*survey.Question{
@@ -69,8 +72,8 @@ var binaryCmd = &cobra.Command{
 				return
 			}
 
-			var link_openshift_install = os.Getenv("HOME") + "/bin/openshift-install"			
-			var link_oc = os.Getenv("HOME") + "/bin/oc"			
+			var link_openshift_install = os.Getenv("HOME") + "/bin/openshift-install"
+			var link_oc = os.Getenv("HOME") + "/bin/oc"
 			var target_openshift_install = version_choices[answers.Version] + "/openshift-install"
 			var target_oc = version_choices[answers.Version] + "/oc"
 
