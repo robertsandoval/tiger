@@ -21,7 +21,6 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/AlecAivazis/survey"
 	"github.com/spf13/cobra"
 )
 

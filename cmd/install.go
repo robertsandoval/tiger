@@ -21,7 +21,6 @@ import (
 	"os/user"
 	"strconv"
 
-	"github.com/AlecAivazis/survey"
 	"github.com/spf13/cobra"
 )
 
