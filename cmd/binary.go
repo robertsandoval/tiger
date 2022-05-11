@@ -17,11 +17,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/spf13/cobra"
 	"os"
 	"path"
 	"path/filepath"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/spf13/cobra"
 )
 
 var binaryCmd = &cobra.Command{
@@ -31,7 +31,7 @@ var binaryCmd = &cobra.Command{
 Lists a set of version options for the binaries and 
 creates symlinks into $USER/bin `,
 	Run: func(cmd *cobra.Command, args []string) {
-		install_clients := "/usr/local/ocp/install-clients"
+		install_clients := "/Users/sandoval/ocp/install-clients"
 		version_choices := make(map[string]string)
 
 		if install_clients != "" {
@@ -86,5 +86,5 @@ creates symlinks into $USER/bin `,
 }
 
 func init() {
-	setCmd.AddCommand(binaryCmd)
+	rootCmd.AddCommand(binaryCmd)
 }
