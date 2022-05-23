@@ -17,14 +17,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"os"
-
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"runtime"
 )
 
-var cfgFile string
+var cfgFile, operatingsystem string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -45,21 +45,31 @@ func Execute() {
 }
 
 func init() {
+
+	operatingsystem = runtime.GOOS
+
+	switch operatingsystem {
+	case "windows":
+		operatingsystem = "windows"
+	case "darwin":
+		operatingsystem = "mac"
+	case "linux":
+		operatingsystem = "linux"
+	default:
+		fmt.Printf("%s.\n", operatingsystem)
+	}
+	if operatingsystem == "windows" {
+		fmt.Println("Command is only supported on Mac and Linux at this time")
+		os.Exit(8008)
+	}
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tiger.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -82,4 +92,7 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+	//TODO add a variable to instruct how many versions back to query.
+	// This will shorten up the back and forth requests to mirror.openshift.com
+
 }

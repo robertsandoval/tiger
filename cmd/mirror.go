@@ -28,27 +28,11 @@ func (ocp OCPversion) String() string {
 	return fmt.Sprintf("%+v %+v", ocp.category, ocp.version)
 }
 
-func getAllVersions() {
-	c := colly.NewCollector(
-		colly.AllowedDomains("mirror.openshift.com"),
-	)
-	c.OnHTML(".file", func(e *colly.HTMLElement) {
-		links := e.ChildAttrs("a", "href")
-		links[0] = strings.Trim(links[0], "\\/")
-		//		fmt.Println(links[0])
-		if links[0] != "candidate" && links[0] != "fast" && links[0] != "latest" && links[0] != "stable" && links[0] != "unreleased" {
-			versions = append(versions, parseVersion(links[0]))
-		}
-		//		allVersions[links[0]] = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + links[0]
-	})
-	c.Visit("https://mirror.openshift.com/pub/openshift-v4/clients/ocp/")
-}
-
-func getVersions(category string) []OCPversion {
-	getAllVersions()
-	if category != "all" {
+func getVersions(chanel string) []OCPversion {
+	queryAllVersions()
+	if chanel != "all" {
 		for _, ocp := range versions {
-			if ocp.category == category {
+			if ocp.category == chanel {
 				filteredVersions = append(filteredVersions, ocp)
 			}
 		}
@@ -57,7 +41,57 @@ func getVersions(category string) []OCPversion {
 	}
 	return sortVersions(filteredVersions)
 }
+
+func queryMirrorURLs(mirrorURL string) []string {
+	var links []string
+	c := colly.NewCollector(
+		colly.AllowedDomains("mirror.openshift.com"),
+	)
+	c.OnHTML(".file", func(e *colly.HTMLElement) {
+		links = e.ChildAttrs("a", "href")
+	})
+	c.Visit(mirrorURL)
+	return links
+}
+func filterLinks() {
+
+}
+
+func queryAllVersions() {
+	c := colly.NewCollector(
+		colly.AllowedDomains("mirror.openshift.com"),
+	)
+	c.OnHTML(".file", func(e *colly.HTMLElement) {
+		links := e.ChildAttrs("a", "href")
+		links[0] = strings.Trim(links[0], "\\/")
+		if links[0] != "candidate" && links[0] != "fast" && links[0] != "latest" && links[0] != "stable" && links[0] != "unreleased" {
+			versions = append(versions, parseVersion(links[0]))
+		}
+		//		allVersions[links[0]] = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + links[0]
+	})
+	c.Visit("https://mirror.openshift.com/pub/openshift-v4/clients/ocp/")
+}
+func getVersion(version string) {
+	queryVersion()
+
+}
+
+func queryVersion() {
+	c := colly.NewCollector(
+		colly.AllowedDomains("mirror.openshift.com"),
+	)
+	c.OnHTML(".file", func(e *colly.HTMLElement) {
+		links := e.ChildAttrs("a", "href")
+		fmt.Println(links)
+		//		allVersions[links[0]] = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + links[0]
+	})
+	c.Visit("https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/")
+}
+
 func parseVersion(version string) OCPversion {
+	fmt.Println("-----")
+	fmt.Println(version)
+	fmt.Println("-------")
 	var ocp = OCPversion{}
 	var x []string
 	s := strings.Split(version, "-")
@@ -86,4 +120,8 @@ func sortVersions(versions []OCPversion) []OCPversion {
 		return versions[i].minorVersion > versions[j].minorVersion
 	})
 	return versions
+}
+
+func parseSpecificVersionLinks() {
+
 }

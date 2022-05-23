@@ -9,13 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	stableFlag    bool
-	latestFlag    bool
-	fastFlag      bool
-	candidateFlag bool
-)
-
 // versionsCmd represents the versions command
 var versionsCmd = &cobra.Command{
 	Use:   "versions",
@@ -47,7 +40,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	getCmd.AddCommand(versionsCmd)
+	//	getCmd.AddCommand(versionsCmd)
 	versionsCmd.Flags().BoolVarP(&stableFlag, "stable", "s", false, "Get Stable Versions")
 	versionsCmd.Flags().BoolVarP(&fastFlag, "fast", "f", false, "Get Fast Versions")
 	versionsCmd.Flags().BoolVarP(&candidateFlag, "candidate", "c", false, "Get Candidate Versions")
