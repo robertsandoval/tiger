@@ -5,30 +5,26 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"errors"
 	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 {
-			if args[0] == "versions" {
-				fmt.Println("found versions argument")
-				// Add the flag
-			} else {
-				fmt.Println("found OTHER argument")
-			}
+	Use:           "get",
+	Short:         "Display one or more resources. [versions|clusters]",
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 0 {
+			return errors.New("Please use version|clusters")
 		}
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(args)
+		fmt.Println(len(args))
 	},
 }
 

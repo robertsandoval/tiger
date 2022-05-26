@@ -16,11 +16,13 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"os/exec"
 	"runtime"
 )
 
@@ -68,8 +70,10 @@ func init() {
 }
 
 // initConfig reads in config file and ENV variables if set.
-func initConfig() {
 
+//TODO Need set setup some variables from viper/env variables.
+// Specifically need HOME, DownloadDir....etc
+func initConfig() {
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -95,4 +99,19 @@ func initConfig() {
 	//TODO add a variable to instruct how many versions back to query.
 	// This will shorten up the back and forth requests to mirror.openshift.com
 
+}
+
+func runCmd(cmd *exec.Cmd) {
+	stderr, _ := cmd.StderrPipe()
+	if err := cmd.Start(); err != nil {
+
+		fmt.Println(err)
+	}
+
+	scanner := bufio.NewScanner(stderr)
+	for scanner.Scan() {
+		m := scanner.Text()
+		fmt.Println(m)
+	}
+	cmd.Wait()
 }

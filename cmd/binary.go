@@ -86,5 +86,5 @@ creates symlinks into $USER/bin `,
 }
 
 func init() {
-	rootCmd.AddCommand(binaryCmd)
+	//	rootCmd.AddCommand(binaryCmd)
 }

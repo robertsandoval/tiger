@@ -69,13 +69,14 @@ func parseVersion(version string) OCPversion {
 	if len(s) == 2 && (s[0] == "fast" || s[0] == "stable" || s[0] == "candidate") {
 		ocp.channel = s[0]
 		ocp.version = s[1]
-		s2 := queryVersion(ocp.channel, ocp.version)
+		s2 := queryVersion(ocp.channel + "-" + ocp.version)
 		sa := strings.Fields(s2)
 		fullVersion := strings.Split(sa[1], ".")
 		ocp.majorVersion, _ = strconv.Atoi(fullVersion[0])
 		ocp.minorVersion, _ = strconv.Atoi(fullVersion[1])
 		ocp.patchVersion, _ = strconv.Atoi(fullVersion[2])
 		ocp.version = fullVersion[0] + "." + fullVersion[1] + "." + fullVersion[2]
+		//TODO check these urls
 		ocp.ocpInstallUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + version + "/" + "openshift-install-linux.tar.gz"
 		ocp.ocpCliUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + ocp.version + "/" + "openshift-client-linux.tar.gz"
 		//TODO this can go away
@@ -87,8 +88,8 @@ func parseVersion(version string) OCPversion {
 	return ocp
 }
 
-func queryVersion(channel string, version string) string {
-	urlstring := "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + channel + "-" + version + "/release.txt"
+func queryVersion(version string) string {
+	urlstring := "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + version + "/release.txt"
 	resp, _ := http.Get(urlstring)
 	body, _ := ioutil.ReadAll(resp.Body)
 	sb := string(body)
