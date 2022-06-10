@@ -52,7 +52,7 @@ func queryAllVersions() {
 	c.OnHTML(".file", func(e *colly.HTMLElement) {
 		links := e.ChildAttrs("a", "href")
 		links[0] = strings.Trim(links[0], "\\/")
-		if links[0] != "candidate" && links[0] != "fast" && links[0] != "latest" && links[0] != "stable" && links[0] != "unreleased" {
+		if links[0] != "candidate" && links[0] != "fast" && links[0] != "latest" && links[0] != "stable" && links[0] != "unreleased" && !strings.HasPrefix(links[0], "4.") {
 			versions = append(versions, parseVersion(links[0]))
 		}
 	})
@@ -66,7 +66,7 @@ func parseVersion(version string) OCPversion {
 
 	var ocp = OCPversion{}
 	s := strings.Split(version, "-")
-	if len(s) == 2 && (s[0] == "fast" || s[0] == "stable" || s[0] == "candidate") {
+	if len(s) == 2 && (s[0] == "fast" || s[0] == "stable" || s[0] == "candidate" || s[0] == "latest") {
 		ocp.channel = s[0]
 		ocp.version = s[1]
 		s2 := queryVersion(ocp.channel + "-" + ocp.version)
@@ -75,7 +75,7 @@ func parseVersion(version string) OCPversion {
 		ocp.majorVersion, _ = strconv.Atoi(fullVersion[0])
 		ocp.minorVersion, _ = strconv.Atoi(fullVersion[1])
 		ocp.patchVersion, _ = strconv.Atoi(fullVersion[2])
-		ocp.version = fullVersion[0] + "." + fullVersion[1] + "." + fullVersion[2]
+		//ocp.version = fullVersion[0] + "." + fullVersion[1] + "." + fullVersion[2]
 		//TODO check these urls
 		ocp.ocpInstallUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + version + "/" + "openshift-install-linux.tar.gz"
 		ocp.ocpCliUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/" + ocp.version + "/" + "openshift-client-linux.tar.gz"
@@ -115,8 +115,14 @@ func filterLinks() {
 
 }
 
-func getVersion(version string) {
-	//	queryVersion()
+func getVersion(version string) []OCPversion {
+	queryAllVersions()
+	for _, ocp := range versions {
+		if ocp.version == version {
+			filteredVersions = append(filteredVersions, ocp)
+		}
+	}
+	return sortVersions(filteredVersions)
 
 }
 

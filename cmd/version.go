@@ -11,14 +11,11 @@ import (
 )
 
 var (
-	channel    string
-	latestFlag bool
-	showurls   bool
-	version    string
-	devpreview bool
-)
-
-var (
+	channel                             string
+	latestFlag                          bool
+	showurls                            bool
+	version                             string
+	devpreview                          bool
 	oc_tar_filename                     string
 	openshift_install_tar_filename      string
 	oc_tar_filename_full                string
@@ -54,10 +51,12 @@ var getVersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "A brief description of your command",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("In getVersion command ")
-		var version string
 		ocp_version_directory = os.Getenv("HOME") + "/" + OCP_VERSION_DOWNLOAD_DIR
-
+		if !validateChannel(channel) {
+			fmt.Println(cmd.Flag("channel").Usage)
+			fmt.Printf("channel: %s\nversion: %s\n", channel, version)
+			return
+		}
 		//Build download location string ($HOME/.ocp/versions/4.10/...
 		if cmd.Flag("latest").Changed {
 			version = "latest"
@@ -65,7 +64,9 @@ var getVersionCmd = &cobra.Command{
 			version = "dev-preview"
 		} else {
 			version = channel + "-" + version
+			fmt.Println(version)
 		}
+
 		ocp_version_directory = ocp_version_directory + "/" + version
 		cleanDir(ocp_version_directory)
 		//TODO lets see if we can do this without passing version possibly
@@ -86,16 +87,19 @@ var listVersionsCmd = &cobra.Command{
 	Use:   "versions",
 	Short: "List versions available to download for OCP",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("In listVersions command ")
+		var versions []OCPversion
 		if !validateChannel(channel) {
 			fmt.Println(cmd.Flag("channel").Usage)
+			fmt.Printf("channel: %s\nversion: %s\n", channel, version)
 			return
 		}
-		if cmd.CalledAs() == "versions" {
-			versions := getVersions(channel)
-			for _, ocp := range versions {
-				fmt.Printf("%s-%d.%d -->  %d.%d.%d\n", ocp.channel, ocp.majorVersion, ocp.minorVersion, ocp.majorVersion, ocp.minorVersion, ocp.patchVersion)
-			}
+		if cmd.Flag("version").Changed {
+			versions = getVersion(version)
+		} else {
+			versions = getVersions(channel)
+		}
+		for _, ocp := range versions {
+			fmt.Printf("%s-%d.%d -->  %d.%d.%d\n", ocp.channel, ocp.majorVersion, ocp.minorVersion, ocp.majorVersion, ocp.minorVersion, ocp.patchVersion)
 		}
 
 	},
@@ -115,13 +119,14 @@ func init() {
 	setVersionCmd.Flags().StringVarP(&version, "ocpversion", "v", "", "Set OCP Version to Use")
 
 	//List
-	listCmd.Flags().StringVarP(&channel, "channel", "c", "stable", "Specify release channel. ")
-	listCmd.Flags().BoolVar(&showurls, "showurls", false, "List oc and openshift-install download URLs")
+	listVersionsCmd.Flags().StringVarP(&channel, "channel", "c", "stable", "Specify release channel: stable|fast|candidate|latest ")
+	listVersionsCmd.Flags().StringVarP(&version, "version", "v", "", "List stable, fast, latest and candidate versions for a specific version  ")
+	listVersionsCmd.Flags().BoolVar(&showurls, "showurls", false, "List oc and openshift-install download URLs")
 	listCmd.AddCommand(listVersionsCmd)
 }
 
 func validateChannel(channel string) bool {
-	if channel != "stable" && channel != "candidate" && channel != "fast" {
+	if channel != "stable" && channel != "candidate" && channel != "fast" && channel != "latest" {
 		return false
 	} else {
 		return true
@@ -160,6 +165,7 @@ func buildFilenames(version string) {
 }
 
 // download
+//TODO  download from list instead, maybe pull from viper config
 func downloadBinaries(dir, version string) {
 
 	downloadFile(oc_tar_filename_full, oc_url)
