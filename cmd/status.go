@@ -28,9 +28,9 @@ import (
 )
 
 type Cluster struct {
-	clusterName  string
-	owner        string
-	api_endpoint string
+	clusterName     string
+	api_endpoint    string
+	cluster_console string
 }
 
 // statusCmd represents the status command
@@ -43,8 +43,7 @@ Currently lists ClusterName, OWNER, and API-Endpoint.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		clusters := []*Cluster{}
 		fmt.Printf("%-24s%-16s%-24s\n", "ClusterName", "OWNER", "API Endpoint")
-		user := os.Getenv("USER")
-		path := "/usr/local/ocp/clusters/" + user
+		path := os.Getenv("HOME") + "/.ocp/clusters"
 
 		//get users cluster directories
 		files, err := ioutil.ReadDir(path)
@@ -56,14 +55,13 @@ Currently lists ClusterName, OWNER, and API-Endpoint.`,
 		for _, file := range files {
 			temp := new(Cluster)
 			temp.clusterName = file.Name()
-			temp.owner = user
 			temp.api_endpoint = getAPIEndpoint(path, temp.clusterName)
 			clusters = append(clusters, temp)
 		}
 
 		for i := range clusters {
 			cluster := clusters[i]
-			fmt.Printf("%-24s%-16s%-24s\n", cluster.clusterName, cluster.owner, cluster.api_endpoint)
+			fmt.Printf("%-24s%-24s\n", cluster.clusterName, cluster.api_endpoint)
 		}
 
 	},

@@ -26,7 +26,8 @@ import (
 	"runtime"
 )
 
-var cfgFile, operatingsystem string
+var operatingsystem string
+var tigerConfig = viper.New()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -66,7 +67,6 @@ func init() {
 	}
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tiger.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -74,28 +74,23 @@ func init() {
 //TODO Need set setup some variables from viper/env variables.
 // Specifically need HOME, DownloadDir....etc
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		// Search config in home directory with name ".tiger" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".tiger")
+	// Find home directory.
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	// Search config in home directory with name ".tiger" (without extension).
+	tigerConfig.AddConfigPath(home)
+	tigerConfig.SetConfigName(".tiger")
+	tigerConfig.SetConfigType("yaml")
+	tigerConfig.SetDefault("install-dir", os.Getenv("HOME")+"/.ocp/clusters")
 
+	tigerConfig.AutomaticEnv() // read in environment variables that match
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
+	_ = tigerConfig.ReadInConfig()
+
 	//TODO add a variable to instruct how many versions back to query.
 	// This will shorten up the back and forth requests to mirror.openshift.com
 

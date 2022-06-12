@@ -22,8 +22,8 @@ import (
 // setCmd represents the set command
 var setCmd = &cobra.Command{
 	Use:   "set",
-	Short: "Used to set configurations. Currently only \"binary\"",
-	Long:  `Used to set configurations. Currently only binary.`,
+	Short: "Used to set what version to use",
+	Long:  `Used to set what version to use`,
 	Run: func(cmd *cobra.Command, args []string) {
 	},
 }

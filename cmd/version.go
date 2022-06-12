@@ -51,7 +51,9 @@ var getVersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "A brief description of your command",
 	Run: func(cmd *cobra.Command, args []string) {
-		ocp_version_directory = os.Getenv("HOME") + "/" + OCP_VERSION_DOWNLOAD_DIR
+		//	ocp_version_directory = os.Getenv("HOME") + "/" + OCP_VERSION_DOWNLOAD_DIR
+		ocp_version_directory = tigerConfig.GetString("version-dir")
+		fmt.Printf("version dir %s\n", ocp_version_directory)
 		if !validateChannel(channel) {
 			fmt.Println(cmd.Flag("channel").Usage)
 			fmt.Printf("channel: %s\nversion: %s\n", channel, version)
@@ -64,9 +66,9 @@ var getVersionCmd = &cobra.Command{
 			version = "dev-preview"
 		} else {
 			version = channel + "-" + version
-			fmt.Println(version)
 		}
 
+		//This sets the version director to a specific version dir
 		ocp_version_directory = ocp_version_directory + "/" + version
 		cleanDir(ocp_version_directory)
 		//TODO lets see if we can do this without passing version possibly
@@ -135,7 +137,6 @@ func validateChannel(channel string) bool {
 
 //Build filenames based on flags
 func buildFilenames(version string) {
-
 	//oc tar_filname
 	oc_tar_filename = "openshift-client-" + operatingsystem + ".tar.gz"
 	openshift_install_tar_filename = "openshift-install-" + operatingsystem + ".tar.gz"
@@ -152,16 +153,16 @@ func buildFilenames(version string) {
 	//	oc_download_file_location := dir + "openshift-client-" + operatingsystem + ".tar.gz"
 	oc_url = OCP_MIRROR_URL + version + "/" + oc_tar_filename
 	openshift_install_url = OCP_MIRROR_URL + version + "/" + openshift_install_tar_filename
-	/*	fmt.Println("-------------")
-		fmt.Printf("ocp_version_directory:%s\n", ocp_version_directory)
-		fmt.Printf("oc_tar_filename: %s\n", oc_tar_filename)
-		fmt.Printf("oc_tar_filename_full: %s\n", oc_tar_filename_full)
-		fmt.Printf("openshift_install_tar_filename: %s\n", openshift_install_tar_filename)
-		fmt.Printf("openshift_install_tar_filename_full: %s\n", openshift_install_tar_filename_full)
+	fmt.Println("-------------")
+	fmt.Printf("ocp_version_directory:%s\n", ocp_version_directory)
+	fmt.Printf("oc_tar_filename: %s\n", oc_tar_filename)
+	fmt.Printf("oc_tar_filename_full: %s\n", oc_tar_filename_full)
+	fmt.Printf("openshift_install_tar_filename: %s\n", openshift_install_tar_filename)
+	fmt.Printf("openshift_install_tar_filename_full: %s\n", openshift_install_tar_filename_full)
 
-		fmt.Printf("oc_url: %s\n", oc_url)
-		fmt.Printf("openshift_install_url: %s\n", openshift_install_url)
-		fmt.Println("-------------") */
+	fmt.Printf("oc_url: %s\n", oc_url)
+	fmt.Printf("openshift_install_url: %s\n", openshift_install_url)
+	fmt.Println("-------------")
 }
 
 // download
